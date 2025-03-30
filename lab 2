@@ -1,0 +1,217 @@
+#include <iostream>
+using namespace std;
+
+class vect {
+private:
+    int dim;
+    double* a;
+    static int count;
+    int num;
+
+public:
+    vect operator+(const vect &r) const;  // Изменено на const
+    friend vect operator+(const vect &l, const vect &r);  // Изменено на const
+    vect operator-() const;  // Изменено на const
+    vect& operator=(const vect &r);
+    double operator[](int i) const;  // Изменено на const
+
+    vect() : dim(0), a(nullptr), num(++count) {
+        cout << "Вектор #" << num << " создан (по умолчанию)" << endl;
+    }
+
+    vect(int d) : dim(d), num(++count) {
+        a = new double[dim];
+        for (int i = 0; i < dim; i++) a[i] = 0.0;
+        cout << "Вектор #" << num << " создан (размер " << dim << ")" << endl;
+    }
+
+    vect(vect const& r) : dim(r.dim), num(++count) {
+        a = new double[dim];
+        for (int i = 0; i < dim; i++) a[i] = r.a[i];
+        cout << "Вектор #" << num << " создан (копия вектора #" << r.num << ")" << endl;
+    }
+
+    ~vect() {
+        delete[] a;
+        cout << "Вектор #" << num << " уничтожен" << endl;
+    }
+
+    // Методы доступа
+    void setElement(int index, double value) {
+        if (index >= 0 && index < dim) a[index] = value;
+    }
+
+    double getElement(int index) const {
+        if (index >= 0 && index < dim) return a[index];
+        return 0.0;
+    }
+
+    int getDim() const { return dim; }
+
+    void print()  {
+        cout << "Вектор #" << num << ": [";
+        for (int i = 0; i < dim; i++) {
+            cout << a[i];
+            if (i < dim-1) cout << ", ";
+        }
+        cout << "]" << endl;
+    }
+};
+
+int vect::count = 0;
+
+vect vect::operator+(vect const&r) const {
+    if (dim != r.dim) {
+        cout << "Ошибка: разные размерности векторов!" << endl;
+        return vect();
+    }
+    
+    vect res(dim);
+    for (int i = 0; i < dim; i++) 
+        res.a[i] = a[i] + r.a[i];
+    cout << "Вектор #" << num << " + Вектор #" << r.num << " = Вектор #" << res.num << endl;
+    return res;
+}
+
+vect operator+(vect const&l, vect const&r) {
+    if (l.dim != r.dim) {
+        cout << "Ошибка: разные размерности векторов!" << endl;
+        return vect();
+    }
+    
+    vect res(l.dim);
+    for (int i = 0; i < res.dim; i++)
+        res.a[i] = l.a[i] + r.a[i];
+    cout << "Вектор #" << l.num << " + Вектор #" << r.num << " = Вектор #" << res.num << " (внешний оператор)" << endl;
+    return res;
+}
+
+vect vect::operator-() const {
+    vect res(dim);
+    for (int i = 0; i < dim; i++)
+        res.a[i] = -a[i];
+    cout << "-Вектор #" << num << " = Вектор #" << res.num << endl;
+    return res;
+}
+
+vect& vect::operator=(vect const&r) {
+    if (this != &r) {
+        delete[] a;
+        dim = r.dim;
+        a = new double[dim];
+        for (int i = 0; i < dim; i++) a[i] = r.a[i];
+    }
+    cout << "Вектор #" << num << " присвоен вектору #" << r.num << endl;
+    return *this;
+}
+
+double vect::operator[](int i) const {
+    if (i >= 0 && i < dim) return a[i];
+    cout << "Ошибка: индекс за пределами вектора!" << endl;
+    return 0.0;
+}
+
+class matr {
+private:
+    int dim;
+    double* b;
+    static int count;
+    int num;
+
+public:
+    matr() : dim(0), b(nullptr), num(++count) {
+        cout << "Матрица #" << num << " создана (по умолчанию)" << endl;
+    }
+
+    matr(int d) : dim(d), num(++count) {
+        b = new double[dim*dim];
+        for (int i = 0; i < dim*dim; i++) b[i] = 0.0;
+        cout << "Матрица #" << num << " создана (размер " << dim << "x" << dim << ")" << endl;
+    }
+
+    matr(const matr& m) : dim(m.dim), num(++count) {
+        b = new double[dim*dim];
+        for (int i = 0; i < dim*dim; i++) b[i] = m.b[i];
+        cout << "Матрица #" << num << " создана (копия матрицы #" << m.num << ")" << endl;
+    }
+
+    ~matr() {
+        delete[] b;
+
+cout << "Матрица #" << num << " уничтожена" << endl;
+    }
+
+    // Методы доступа
+    void setElement(int row, int col, double value) {
+        if (row >= 0 && row < dim && col >= 0 && col < dim)
+            b[row*dim + col] = value;
+    }
+
+    double getElement(int row, int col) const {
+        if (row >= 0 && row < dim && col >= 0 && col < dim)
+            return b[row*dim + col];
+        return 0.0;
+    }
+
+    void print() const {
+        cout << "Матрица #" << num << ":\n";
+        for (int i = 0; i < dim; i++) {
+            for (int j = 0; j < dim; j++) {
+                cout << getElement(i, j) << " ";
+            }
+            cout << endl;
+        }
+    }
+
+    vect operator*( vect const&v) const {
+        if (dim != v.getDim()) {
+            cout << "Ошибка: несовпадение размерностей матрицы и вектора!" << endl;
+            return vect();
+        }
+        
+        vect res(dim);
+        for (int i = 0; i < dim; i++) {
+            double sum = 0;
+            for (int j = 0; j < dim; j++) {
+                sum += getElement(i, j) * v.getElement(j);
+            }
+            res.setElement(i, sum);
+        }
+        cout << "Матрица #" << num << " * Вектор #" << v.getDim() << " = Вектор #" << res.getDim() << endl;
+        return res;
+    }
+};
+
+int matr::count = 0;
+
+int main() {
+  
+    vect v1(2), v2(2);
+    v1.setElement(0, 1.0);
+    v1.setElement(1, 2.0);
+    v2.setElement(0, 3.0);
+    v2.setElement(1, 4.0);
+    
+    v1.print();
+    v2.print();
+
+
+    vect v3 = v1 + v2;  
+    v3.print();
+
+    vect v4 = -v1;
+    v4.print();
+
+
+    matr m1(2);
+    m1.setElement(0, 0, 1.0);
+    m1.setElement(0, 1, 2.0);
+    m1.setElement(1, 0, 3.0);
+    m1.setElement(1, 1, 4.0);
+    m1.print();
+
+    vect v5 = m1 * v1;
+    v5.print();
+
+    return 0;
+}
